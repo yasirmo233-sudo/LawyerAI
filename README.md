@@ -1,8 +1,41 @@
-Psalm Lawyer Assistant — Developer Setup
+Psalm Lawyer Assistant
 
-Developer-first, light-theme frontend for a jurisdiction-aware legal AI. Runs locally with Next.js and talks to any OpenAI-style backend (chat, files, transcription).
+Developer-first, light-theme frontend for a jurisdiction-aware legal AI.
 
-This README is for developers. It covers local setup, environment, scripts, and common fixes.
+Disclaimer: This software is an AI assistant and does not provide legal advice or create a solicitor–client relationship.
+
+Table of Contents
+
+Overview
+
+Requirements
+
+Quick Start (Local Dev)
+
+Environment
+
+Scripts
+
+Project Structure
+
+Backend Expectations
+
+Common Tasks
+
+Troubleshooting
+
+License
+
+Overview
+
+Psalm Lawyer Assistant is a modern Next.js frontend that connects to any OpenAI-style backend for:
+
+Chat with streaming replies (ChatGPT-like UX)
+
+Document uploads (PDF/DOCX/TXT/PNG) and citation rendering
+
+Voice → text transcription for quick prompt capture
+It ships with jurisdiction-aware prompts and legal presets that start a new chat and pre-fill the composer for structured workflows.
 
 Requirements
 
@@ -12,101 +45,112 @@ Package manager: pnpm (preferred) or npm/yarn
 
 A terminal (PowerShell, CMD, or bash)
 
-First-Time Setup
-
-On Windows PowerShell, if scripts are blocked, run once:
+Windows/PowerShell tip: if scripts are blocked, run once:
 
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 
-1) Install dependencies
-
-pnpm (recommended)
-
+Quick Start (Local Dev)
+# 1) install dependencies
+# pnpm (recommended)
 corepack enable
 corepack prepare pnpm@latest --activate
 pnpm install
 
-
-or npm
-
+# OR npm
 npm install
 
-2) Configure environment
+# 2) create local env file (see "Environment")
+# macOS/Linux:
+cp .env.local.example .env.local  # if present, else create manually
+# Windows (PowerShell):
+Copy-Item .env.local.example .env.local -ErrorAction SilentlyContinue
+
+# 3) run the dev server
+pnpm dev
+# or: npm run dev
+
+# 4) open the app
+# http://localhost:3000
+
+
+Production build (locally):
+
+pnpm build && pnpm start
+# or: npm run build && npm start
+
+Environment
 
 Create a file named .env.local in the project root:
 
-# Base URL of your backend API (OpenAI-style). Leave empty to use mock responses in dev.
+# Base URL of your backend API (OpenAI-style).
+# Leave empty in dev to use safe mock responses.
 NEXT_PUBLIC_API_BASE_URL=
 
-# Show admin settings in non-prod builds only.
+# Show the admin settings UI in non-prod builds only.
 NEXT_PUBLIC_ENABLE_ADMIN=true
 
-# Optional: SHA-256 hex of your passphrase for admin unlock in non-prod.
+# Optional: SHA-256 hex of a passphrase for admin unlock in non-prod.
 NEXT_PUBLIC_ADMIN_PASSHASH=
 
-Run Locally
 
-Dev server (hot reload)
+Mock mode:
+If NEXT_PUBLIC_API_BASE_URL is empty, the app streams mock responses so you can test the UI without a backend.
 
-pnpm dev
-# or: npm run dev
-# open http://localhost:3000
-
-
-Production build
-
-pnpm build
-pnpm start
-# or: npm run build && npm start
+Admin UI:
+Set NEXT_PUBLIC_ENABLE_ADMIN=false in production builds. Admin is for tweaking endpoint/model/params during development.
 
 Scripts
-pnpm dev         # start dev server
+pnpm dev         # start dev server (hot reload)
 pnpm build       # production build
-pnpm start       # run built app
+pnpm start       # run the built app
 pnpm lint        # lint
 pnpm typecheck   # TypeScript checks
 
 
-(Use npm run ... if using npm.)
+(Use npm run ... if you prefer npm.)
 
-Project Structure (high level)
+Project Structure
 app/                  # App Router pages (/ and /app)
-components/           # UI (ChatCanvas, Sidebar, Composer, etc.)
-hooks/                # custom React hooks
+components/           # UI components (ChatCanvas, Sidebar, Composer, RightPanel, etc.)
+hooks/                # React hooks
 lib/
   client.ts           # API client (chat stream, upload, transcription, health)
-  presets.ts          # legal presets (system + prefill)
+  presets.ts          # Legal presets (system + prefill)
   template.ts         # {{variable}} substitution
   store/              # Zustand stores (chats, composer, settings)
-public/               # static assets
+public/               # Static assets
 styles/               # Tailwind config/styles
-types/                # shared TypeScript types
+types/                # Shared TypeScript types
 
-Backend Expectations (for real data)
+Backend Expectations
+
+Your backend should expose OpenAI-style endpoints:
 
 GET /health → { ok: true }
 
-POST /v1/chat/completions → SSE or JSON response; accepts messages, model, temperature, max_tokens, optional jurisdiction, attachments
+POST /v1/chat/completions
+Body includes model, messages, temperature, max_tokens, and optional jurisdiction, attachments.
+Should support SSE token streaming.
 
 POST /v1/files (multipart) → returns { id, name, mime, size }
 
 POST /v1/audio/transcriptions (multipart file) → returns { text }
 
-Leave NEXT_PUBLIC_API_BASE_URL empty to use safe mock responses in dev.
+Enable CORS for your frontend origin(s). Never embed secrets in the frontend.
 
 Common Tasks
 
-Edit presets: lib/presets.ts (both system and prefill)
+Edit legal presets: lib/presets.ts (update both system and prefill)
 
-Jurisdiction defaults: check jurisdiction selector/store and ensure it’s passed into chat calls
+Jurisdiction defaults: adjust selector/store and pass value into chat calls
 
-Hide admin in prod: set NEXT_PUBLIC_ENABLE_ADMIN=false in production environments
+Hide admin in prod: set NEXT_PUBLIC_ENABLE_ADMIN=false in production
 
 Troubleshooting
 
 next not recognized / dev script fails
 
-Install deps: pnpm install (or npm install)
+Install dependencies: pnpm install (or npm install)
 
 If still missing: npm install next react react-dom
 
@@ -114,18 +158,18 @@ PowerShell blocks npm scripts
 
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
 
-Port in use
+Port already in use
 
-PORT=3001 pnpm dev (adjust port as needed)
+PORT=3001 pnpm dev (or set another port)
 
-SSE not streaming
+Streaming not working
 
-Confirm backend sends text/event-stream and CORS allows the frontend origin
+Backend must send text/event-stream and allow your origin via CORS
 
 Uploads failing
 
-Backend must accept multipart and allow your origin via CORS
+Backend must accept multipart form data and permit your origin via CORS
 
-Disclaimer
+License
 
-This software is an AI assistant and does not provide legal advice or create a solicitor-client relationship. Use responsibly.
+TBD
