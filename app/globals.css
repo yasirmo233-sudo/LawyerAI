@@ -17,8 +17,8 @@
   --secondary-foreground: oklch(0.145 0 0);
   --muted: oklch(0.97 0 0); /* Very light grey */
   --muted-foreground: oklch(0.45 0 0); /* Medium grey text */
-  --accent: oklch(0.65 0.12 180); /* Soft teal accent */
-  --accent-foreground: oklch(1 0 0);
+  --accent: var(--primary); /* Use primary (blue) for accent to keep hover colors consistent */
+  --accent-foreground: var(--primary-foreground);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.92 0 0); /* Light border */
@@ -34,8 +34,8 @@
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.55 0.15 220);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-accent: var(--sidebar-primary);
+  --sidebar-accent-foreground: var(--sidebar-primary-foreground);
   --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.55 0.15 220);
 }

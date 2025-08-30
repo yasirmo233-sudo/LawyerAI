@@ -45,16 +45,6 @@ export function ChatCanvas({ session, client, composerRef }: ChatCanvasProps) {
     }
   }
 
-  const handleFileUpload = async (file: File): Promise<UploadRef> => {
-    if (!client) throw new Error("Client not available")
-    return await client.uploadFile(file)
-  }
-
-  const handleTranscribe = async (blob: Blob): Promise<string> => {
-    if (!client) throw new Error("Client not available")
-    return await client.transcribeAudio(blob)
-  }
-
   const handleSendMessage = async (content: string, attachments: UploadRef[] = []) => {
     if (!client || !session) return
 
@@ -69,25 +59,63 @@ export function ChatCanvas({ session, client, composerRef }: ChatCanvasProps) {
       timestamp: new Date(),
     }
 
-    // For mock client or when streaming not desired, show instant canned reply
+    // Add assistant message placeholder
     const assistantMessageId = Math.random().toString(36).substring(2, 15)
     const assistantMessage: Message = {
       id: assistantMessageId,
       role: "assistant",
-      content: "functionality is not yet developed",
+      content: "",
       timestamp: new Date(),
-      isStreaming: false,
+      isStreaming: true,
     }
 
-    // Update messages and clear prefill in one operation to prevent re-population
+    // Update messages with both new messages at once
     updateSession(sessionId, {
       messages: [...currentMessages, userMessage, assistantMessage],
-      prefillContent: undefined,
     })
 
-    // Clear composer immediately after sending
-    if (composerRef?.current) {
-      composerRef.current.clearContent()
+    setStreamingMessageId(assistantMessageId)
+
+    try {
+      const stream = await client.sendChat({
+        messages: [...currentMessages, userMessage],
+        jurisdiction: session.jurisdiction,
+        attachments,
+      })
+
+      const reader = stream.getReader()
+      let fullContent = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        fullContent += value
+        
+        // Update the messages directly
+        updateSession(sessionId, {
+          messages: [...currentMessages, userMessage, { ...assistantMessage, content: fullContent }],
+        })
+      }
+
+      // Final update with streaming flag set to false
+      updateSession(sessionId, {
+        messages: [...currentMessages, userMessage, { ...assistantMessage, content: fullContent, isStreaming: false }],
+      })
+    } catch (error) {
+      console.error("Chat error:", error)
+      const err = error as Error
+
+      const errorMessage =
+        err.name === "AbortError"
+          ? "Generation stopped by user."
+          : "Sorry, I encountered an error. Please check your connection and try again."
+
+      updateSession(sessionId, {
+        messages: [...currentMessages, userMessage, { ...assistantMessage, content: errorMessage, isStreaming: false }],
+      })
+    } finally {
+      setStreamingMessageId(null)
     }
   }
 
@@ -162,17 +190,12 @@ export function ChatCanvas({ session, client, composerRef }: ChatCanvasProps) {
   }
 
   const createAndSelectSession = (preset?: { system?: string; prefill?: string; jurisdiction?: string }) => {
-    if (composerRef?.current) {
-      composerRef.current.clearContent()
-    }
-
     if (preset) {
       const newId = createChat(preset)
       setCurrentSession(newId)
       return
     }
 
-  // Ensure a fresh empty chat is created (pass empty preset to avoid reuse)
   const newId = createChat({})
     setCurrentSession(newId)
   }
@@ -187,43 +210,32 @@ export function ChatCanvas({ session, client, composerRef }: ChatCanvasProps) {
 
   if (session.messages.filter((m) => m.role !== "system").length === 0) {
     return (
-      <>
-        <div className="flex-1 flex flex-col bg-background">
-          <div className="flex-1 flex items-center justify-center">
-            <EmptyState
-              onNewSession={createAndSelectSession}
-              jurisdiction={session.jurisdiction === "US" ? "United States" : session.jurisdiction}
+      <div className="flex-1 flex flex-col bg-background">
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState
+            onNewSession={createAndSelectSession}
+            jurisdiction={session.jurisdiction === "US" ? "United States" : session.jurisdiction}
+          />
+        </div>
+
+        <div className="border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <Composer
+              ref={composerRef}
+              onSendMessage={handleSendMessage}
+              sessionId={session.id}
+              disabled={!!streamingMessageId}
+              prefillContent={session.prefillContent}
             />
           </div>
-
-          <div className="border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="max-w-3xl mx-auto px-4 py-4">
-              <Composer
-                ref={composerRef}
-                onSendMessage={handleSendMessage}
-                onFileUpload={handleFileUpload}
-                onTranscribe={handleTranscribe}
-                sessionId={session.id}
-                disabled={!!streamingMessageId}
-                prefillContent={session.prefillContent}
-              />
-            </div>
-          </div>
         </div>
-
-        <div className="text-center text-xs text-muted-foreground py-3 border-t border-border/20">
-          <div>
-            <strong>Reminder:</strong> Psalm provides information and assistance but does not constitute legal advice. Always consult with qualified legal professionals for specific legal matters.
-          </div>
-          <div className="mt-1">Powered by GPT 5</div>
-        </div>
-      </>
+      </div>
     )
   }
 
   return (
     <main className="flex flex-1 flex-col overflow-hidden bg-background" role="main" aria-label="Chat conversation">
-      <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-y-auto">
+      <ScrollArea ref={scrollAreaRef} className="flex-1">
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-8" role="log" aria-live="polite" aria-label="Chat messages">
           {session.messages
             .filter((message) => message.role !== "system")
@@ -250,8 +262,6 @@ export function ChatCanvas({ session, client, composerRef }: ChatCanvasProps) {
           <Composer
             ref={composerRef}
             onSendMessage={handleSendMessage}
-            onFileUpload={handleFileUpload}
-            onTranscribe={handleTranscribe}
             sessionId={session.id}
             disabled={!!streamingMessageId}
             prefillContent={session.prefillContent}

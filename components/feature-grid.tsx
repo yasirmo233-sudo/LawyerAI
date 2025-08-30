@@ -37,7 +37,7 @@ const features = [
 export function FeatureGrid() {
   return (
     <section className="py-20 sm:py-32">
-      <div className="container max-w-screen-xl">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">
             Everything you need for legal work
@@ -47,7 +47,7 @@ export function FeatureGrid() {
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
           {features.map((feature) => (
             <Card key={feature.title} className="border-border/50 hover:border-border transition-colors">
               <CardHeader>

@@ -59,7 +59,7 @@ export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
   }
 
   return (
-    <div className="container max-w-screen-xl py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid gap-8 lg:grid-cols-4">
         {/* Table of Contents - Desktop */}
         <div className="hidden lg:block">

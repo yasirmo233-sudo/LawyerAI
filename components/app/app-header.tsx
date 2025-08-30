@@ -60,11 +60,6 @@ export function AppHeader({ onNewSession, onToggleSidebar, onToggleRightPanel, r
       </div>
 
       <nav className="flex items-center gap-2" role="navigation" aria-label="App navigation">
-        <Button variant="outline" size="sm" onClick={onNewSession} aria-label="Start new chat (Ctrl+K)">
-          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-          New chat
-        </Button>
-
         <Button
           variant="ghost"
           size="sm"

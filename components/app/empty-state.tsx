@@ -8,13 +8,14 @@ import { useChatActions } from "@/lib/store/useChatStore"
 import { cn } from "@/lib/utils"
 
 interface EmptyStateProps {
-  onNewSession: () => void
+  onNewSession?: (preset?: { system?: string; prefill?: string; jurisdiction?: string }) => void
   jurisdiction?: string
   onSessionSelect?: (session: any) => void
 }
 
 export function EmptyState({ onNewSession, jurisdiction = "United States", onSessionSelect }: EmptyStateProps) {
   const { createChat, setCurrentSession } = useChatActions()
+  const { updateSession } = useChatActions()
 
   const presetCards = LEGAL_PRESETS.slice(0, 3)
 
@@ -22,11 +23,24 @@ export function EmptyState({ onNewSession, jurisdiction = "United States", onSes
     const preset = LEGAL_PRESETS.find((p) => p.id === presetId)
     if (!preset) return
 
+    // Use full country name in the prefill string
     const appliedPreset = applyJurisdictionToPreset(preset, jurisdiction)
+    const prefill = appliedPreset.prefill.replace("— {{jurisdiction}}", `— ${jurisdiction}`)
 
+    // If a parent provided an onNewSession handler, call it with the applied preset
+    if (onNewSession) {
+      onNewSession({
+        system: appliedPreset.system,
+        prefill: prefill,
+        jurisdiction: jurisdiction === "United States" ? "US" : jurisdiction,
+      })
+      return
+    }
+
+    // Fallback to local creation when no external handler is provided
     const newChatId = createChat({
       system: appliedPreset.system,
-      prefill: appliedPreset.prefill,
+      prefill: prefill,
       jurisdiction: jurisdiction === "United States" ? "US" : jurisdiction,
     })
 
@@ -55,8 +69,18 @@ export function EmptyState({ onNewSession, jurisdiction = "United States", onSes
 
   const handleStartNewChat = () => {
     console.log("[v0] Start New Chat clicked from empty state")
-    const newChatId = createChat()
-    setCurrentSession(newChatId)
+
+    // Always create empty chat with no preset when clicking New Chat button
+    if (onNewSession) {
+      onNewSession() // Parent handler will create empty chat
+      return
+    }
+
+  // Create an explicit empty chat to avoid reusing a system-only session
+  const newChatId = createChat({}) // Create empty chat with no preset
+  // Ensure it's empty
+  updateSession(newChatId, { prefillContent: undefined, systemPrompt: undefined })
+  setCurrentSession(newChatId)
   }
 
   return (
@@ -101,17 +125,7 @@ export function EmptyState({ onNewSession, jurisdiction = "United States", onSes
           ))}
         </div>
 
-        <div className="pt-4">
-          <Button onClick={handleStartNewChat} size="lg" className="px-8">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Start New Chat
-          </Button>
-        </div>
 
-        <div className="text-xs text-muted-foreground max-w-2xl mx-auto">
-          <strong>Reminder:</strong> Psalm provides information and assistance but does not constitute legal advice.
-          Always consult with qualified legal professionals for specific legal matters.
-        </div>
       </div>
     </div>
   )

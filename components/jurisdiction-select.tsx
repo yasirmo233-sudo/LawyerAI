@@ -17,6 +17,7 @@ export interface Jurisdiction {
 export const TOP_JURISDICTIONS: Jurisdiction[] = [
   { code: "CN", name: "China", flag: "🇨🇳" },
   { code: "IN", name: "India", flag: "🇮🇳" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
   { code: "US", name: "United States", flag: "🇺🇸" },
   { code: "ID", name: "Indonesia", flag: "🇮🇩" },
   { code: "PK", name: "Pakistan", flag: "🇵🇰" },

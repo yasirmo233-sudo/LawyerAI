@@ -22,6 +22,7 @@ interface ComposerProps {
 export interface ComposerRef {
   focus: () => void
   sendMessage: () => void
+  clearContent: () => void
 }
 
 export const Composer = forwardRef<ComposerRef, ComposerProps>(
@@ -34,9 +35,10 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
 
     const maxChars = 4000
 
+    // Only apply prefill once when the session changes (like ChatGPT behaviour)
     useEffect(() => {
       if (prefillContent && prefillContent.trim()) {
-        console.log("[v0] Setting prefill content:", prefillContent)
+        console.log("[v0] Applying prefill content for session:", sessionId)
         setMessage(prefillContent)
 
         // Focus the textarea and position cursor at end
@@ -48,7 +50,8 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
           }
         }, 100)
       }
-    }, [prefillContent, sessionId, updateSession])
+      // Intentionally only run when sessionId changes so prefill is not re-applied after submit
+    }, [sessionId])
 
     useEffect(() => {
       if (sessionId && !prefillContent && !message) {
@@ -67,6 +70,10 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
           handleSubmit(new Event("submit") as any)
         }
       },
+      clearContent: () => {
+        setMessage("")
+        setAttachments([])
+      }
     }))
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -132,7 +139,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="h-8 w-8 p-0 hover:bg-secondary hover:text-secondary-foreground transition-colors"
                 onClick={() => setShowFileUpload(!showFileUpload)}
                 disabled={disabled}
                 aria-label="Toggle file upload"
@@ -154,12 +161,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
             </div>
           </div>
 
-          {!disabled && (
-            <div className="text-xs text-muted-foreground text-center px-4 py-2">
-              <strong>Reminder:</strong> Psalm provides information and assistance but does not constitute legal advice.
-              Always consult with qualified legal professionals for specific legal matters.
-            </div>
-          )}
+          {/* Reminder removed here; footer contains the site reminder */}
         </form>
       </div>
     )

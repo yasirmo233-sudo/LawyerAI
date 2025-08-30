@@ -36,7 +36,7 @@ export function Sidebar({
   const [searchQuery, setSearchQuery] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
-  const { createChat, setCurrentSession, renameChat, addMessage } = useChatActions()
+  const { createChat, setCurrentSession, renameChat, addMessage, updateSession } = useChatActions()
   const { toast } = useToast()
 
   const filteredSessions = sessions.filter((session) => session.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -65,6 +65,9 @@ export function Sidebar({
     // Immediately set as current session
     setCurrentSession(newChatId)
 
+  // Ensure prefill is present (preset flow) — no-op for createChat({}) empty flow
+  // updateSession(newChatId, { prefillContent: appliedPreset.prefill, systemPrompt: appliedPreset.system })
+
     // Trigger navigation callback with a slight delay to ensure state is updated
     setTimeout(() => {
       const newSession = sessions.find((s) => s.id === newChatId)
@@ -77,7 +80,10 @@ export function Sidebar({
 
   const handleNewChatClick = () => {
     console.log("[v0] New chat button clicked from sidebar")
-    const newChatId = createChat()
+    // Force creation of a fresh chat (pass an explicit empty preset so createChat doesn't reuse an existing system-only session)
+    const newChatId = createChat({})
+  // Ensure the new session has no prefill/system prompt
+  updateSession(newChatId, { prefillContent: undefined, systemPrompt: undefined })
     setCurrentSession(newChatId)
     console.log("[v0] Created new chat with ID:", newChatId)
   }

@@ -24,6 +24,7 @@ export interface ChatSession {
   updatedAt: Date
   jurisdiction?: string
   systemPrompt?: string
+  prefillContent?: string
   attachments?: UploadRef[]
 }
 

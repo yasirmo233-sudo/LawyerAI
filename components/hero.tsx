@@ -7,8 +7,8 @@ import { ArrowRight, Sparkles } from "lucide-react"
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/20 py-20 sm:py-32">
-      <div className="container max-w-screen-xl flex items-center justify-center min-h-[60vh]">
-        <div className="mx-auto max-w-4xl text-center">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[60vh]">
+        <div className="w-full max-w-4xl text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 text-primary" />
             AI legal assistant tuned to your jurisdiction

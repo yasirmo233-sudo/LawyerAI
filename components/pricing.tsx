@@ -53,9 +53,9 @@ export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false)
 
   return (
-    <section id="pricing" className="py-20 sm:py-32">
-      <div className="container max-w-screen-xl">
-        <div className="mx-auto max-w-2xl text-center mb-16">
+    <section id="pricing" className="py-16 sm:py-24">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">Simple, transparent pricing</h2>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
             Choose the plan that fits your legal practice. Upgrade or downgrade at any time.
@@ -85,7 +85,7 @@ export function Pricing() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+  <div className="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
           {plans.map((plan) => (
             <Card
               key={plan.name}

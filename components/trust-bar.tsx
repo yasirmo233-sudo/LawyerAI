@@ -3,7 +3,7 @@ export function TrustBar() {
 
   return (
     <section className="border-b bg-muted/30 py-12">
-      <div className="container max-w-screen-xl">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="text-center text-sm font-medium text-muted-foreground mb-8">
           Trusted by legal professionals worldwide
         </p>

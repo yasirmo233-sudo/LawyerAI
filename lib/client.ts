@@ -14,7 +14,7 @@ export interface HealthResponse {
 
 export class LawyerAIClient {
   private settings: ChatSettings
-  private abortController?: AbortController
+  protected abortController?: AbortController
 
   constructor(settings: ChatSettings) {
     this.settings = settings
@@ -151,7 +151,7 @@ export class LawyerAIClient {
               controller.enqueue(value)
             }
           } catch (error) {
-            if (error.name === "AbortError") {
+            if (error instanceof Error && error.name === "AbortError") {
               controller.close()
             } else {
               controller.error(error)
@@ -220,7 +220,7 @@ export class LawyerAIClient {
   }
 
   isStreaming(): boolean {
-    return this.abortController && !this.abortController.signal.aborted
+    return Boolean(this.abortController && !this.abortController.signal.aborted)
   }
 }
 
@@ -237,8 +237,16 @@ export class MockLawyerAIClient extends LawyerAIClient {
   }
 
   async sendChat({ messages, jurisdiction }: SendChatOptions): Promise<ReadableStream<string>> {
-    const mockResponse =
-      "This service is not configured yet. Please set up your backend API endpoint in the Admin Settings to enable AI-powered legal assistance."
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || ''
+    const mockResponse = "Based on your query about \"" + lastUserMessage + "\", here's my analysis:\n\n" +
+      "Key Points:\n" +
+      "1. The issue involves [relevant legal area]\n" +
+      "2. Important considerations include [factors]\n" +
+      "3. Applicable regulations and precedents\n\n" +
+      "Recommended Next Steps:\n" +
+      "- Review specific statutes and regulations\n" +
+      "- Consider potential implications\n" +
+      "- Consult with legal counsel for specific guidance"
 
     return new ReadableStream({
       start: (controller) => {
@@ -257,7 +265,7 @@ export class MockLawyerAIClient extends LawyerAIClient {
             controller.close()
             if (this.currentInterval) clearInterval(this.currentInterval)
           }
-        }, 30)
+        }, 10)
       },
       cancel: () => {
         if (this.currentInterval) {

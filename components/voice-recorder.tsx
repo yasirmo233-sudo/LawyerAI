@@ -208,7 +208,7 @@ export function VoiceRecorder({ onTranscription, onTranscribe, disabled }: Voice
           variant="ghost"
           size="sm"
           onClick={startRecording}
-          className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground transition-colors"
+          className="h-8 w-8 p-0 hover:bg-secondary hover:text-secondary-foreground transition-colors"
           disabled={disabled}
         >
           <Mic className="h-4 w-4" />

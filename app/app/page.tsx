@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import type { ChatSession } from "@/types/chat"
 import { AppHeader } from "@/components/app/app-header"
 import { Sidebar } from "@/components/app/sidebar"
 import { ChatCanvas } from "@/components/app/chat-canvas"
@@ -16,16 +17,16 @@ import type { ComposerRef } from "@/components/app/composer"
 export default function AppPage() {
   const { settings, isLoaded } = useLocalSettings()
   const { isAuthenticated } = useAuth()
-  const currentSession = useCurrentSession()
-  const sessions = useSessions()
-  const { createChat, deleteChat, setCurrentSession } = useChatActions()
+  const currentSession = useCurrentSession() as ChatSession | null
+  const sessions = useSessions() as ChatSession[]
+  const { createChat, deleteChat, setCurrentSession, updateSession } = useChatActions()
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [rightPanelOpen, setRightPanelOpen] = useState(false)
   const [client, setClient] = useState<LawyerAIClient | null>(null)
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const composerRef = useRef<ComposerRef>(null)
+  const composerRef = useRef<ComposerRef | null>(null)
 
   useEffect(() => {
     if (isLoaded && !isAuthenticated) {
@@ -34,9 +35,7 @@ export default function AppPage() {
   }, [isLoaded, isAuthenticated])
 
   useEffect(() => {
-    if (currentSession) {
-      setSelectedChatId(currentSession.id)
-    }
+    setSelectedChatId(currentSession?.id ?? null)
   }, [currentSession])
 
   const handleDeleteSession = useCallback(
@@ -49,11 +48,20 @@ export default function AppPage() {
 
   const createNewSession = useCallback(() => {
     console.log("[v0] Creating new session")
-    const newId = createChat()
+
+    // Clear composer UI immediately
+    if (composerRef?.current) composerRef.current.clearContent()
+
+    // Create a fresh empty chat (no preset). Pass an explicit empty object to avoid reusing an existing empty/system-only session.
+    const newId = createChat({})
+
+    // Ensure the new session has no prefill or system prompt
+    updateSession(newId, { prefillContent: undefined, systemPrompt: undefined })
+
     setCurrentSession(newId)
     setSelectedChatId(newId)
     console.log("[v0] New session created with ID:", newId)
-  }, [createChat, setCurrentSession])
+  }, [createChat, setCurrentSession, updateSession])
 
   const handleSessionSelect = useCallback(
     (session: any) => {
@@ -146,16 +154,16 @@ export default function AppPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar
-        sessions={sessions}
-        currentSession={currentSession}
-        selectedChatId={selectedChatId}
-        onSessionSelect={handleSessionSelect}
-        onNewSession={createNewSession}
-        onDeleteSession={handleDeleteSession}
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
+          <Sidebar
+            sessions={sessions}
+            currentSession={currentSession as any}
+            selectedChatId={selectedChatId}
+            onSessionSelect={handleSessionSelect}
+            onNewSession={createNewSession}
+            onDeleteSession={handleDeleteSession}
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader
@@ -168,7 +176,7 @@ export default function AppPage() {
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 flex justify-center items-stretch">
             <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
-              <ChatCanvas session={currentSession} client={client} composerRef={composerRef} />
+              <ChatCanvas session={currentSession as any} client={client} composerRef={composerRef as React.RefObject<ComposerRef>} />
             </div>
           </div>
 

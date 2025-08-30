@@ -71,13 +71,7 @@ export function MessageBubble({ message, sessionId, onRegenerate }: MessageBubbl
       role="article"
       aria-label={`${isUser ? "Your" : "Assistant"} message`}
     >
-      {!isUser && (
-        <div className="flex-shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Bot className="h-4 w-4" />
-          </div>
-        </div>
-      )}
+  {/* Avatars removed for both user and bot to match requested format */}
 
       <div className={cn("flex-1 max-w-[85%] space-y-2", isUser && "flex flex-col items-end")}>
         <div
@@ -132,10 +126,6 @@ export function MessageBubble({ message, sessionId, onRegenerate }: MessageBubbl
 
         {!isEditing && (
           <div className={cn("flex items-center gap-1 text-xs text-muted-foreground", isUser && "flex-row-reverse")}>
-            <time dateTime={message.timestamp.toISOString()}>
-              {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </time>
-
             <div
               className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
               role="group"
@@ -162,15 +152,6 @@ export function MessageBubble({ message, sessionId, onRegenerate }: MessageBubbl
                   >
                     <Edit3 className="h-3 w-3" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 hover:bg-destructive/10 text-destructive"
-                    onClick={handleDelete}
-                    aria-label="Delete message"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
                 </>
               )}
 
@@ -191,13 +172,7 @@ export function MessageBubble({ message, sessionId, onRegenerate }: MessageBubbl
         )}
       </div>
 
-      {isUser && (
-        <div className="flex-shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-            <User className="h-4 w-4" />
-          </div>
-        </div>
-      )}
+  {/* user avatar removed */}
     </div>
   )
 }

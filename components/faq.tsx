@@ -38,7 +38,7 @@ const faqs = [
 export function FAQ() {
   return (
     <section id="faq" className="bg-muted/30 py-20 sm:py-32">
-      <div className="container max-w-screen-xl">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">Frequently asked questions</h2>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
