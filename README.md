@@ -1,131 +1,131 @@
-# Psalm Lawyer Assistant
+Psalm Lawyer Assistant — Developer Setup
 
-Developer-first, light-theme frontend for a jurisdiction-aware legal AI. Built with Next.js and designed to talk to any OpenAI-style backend (chat, file upload, transcription).
+Developer-first, light-theme frontend for a jurisdiction-aware legal AI. Runs locally with Next.js and talks to any OpenAI-style backend (chat, files, transcription).
 
-> **Note:** This README is for developers. It covers local setup, scripts, environment, and expectations for the backend API.
+This README is for developers. It covers local setup, environment, scripts, and common fixes.
 
----
+Requirements
 
-## Requirements
+Node.js 18+
 
-* Node.js **18+**
-* A package manager: **pnpm** (preferred), or npm/yarn
-* (Optional) An API endpoint that speaks OpenAI-style chat + file + transcription
+Package manager: pnpm (preferred) or npm/yarn
 
----
+A terminal (PowerShell, CMD, or bash)
 
-## Quick Start (Local Dev)
+First-Time Setup
 
-```bash
-# 1) install deps
+On Windows PowerShell, if scripts are blocked, run once:
+
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+
+1) Install dependencies
+
+pnpm (recommended)
+
+corepack enable
+corepack prepare pnpm@latest --activate
 pnpm install
-# or: npm install
 
-# 2) set local environment
-cp .env.local.example .env.local  # if you have an example file
-# otherwise create .env.local (see "Environment" section below)
 
-# 3) run dev server
-pnpm dev
-# or: npm run dev
+or npm
 
-# 4) open the app
-# http://localhost:3000
-```
+npm install
 
----
+2) Configure environment
 
-## Environment
+Create a file named .env.local in the project root:
 
-Create a `.env.local` in the project root:
-
-```bash
-# Base URL of your backend API (OpenAI-style). Leave empty to use mock responses.
+# Base URL of your backend API (OpenAI-style). Leave empty to use mock responses in dev.
 NEXT_PUBLIC_API_BASE_URL=
 
-# Hide admin UI in production; enable only in local or preview builds.
+# Show admin settings in non-prod builds only.
 NEXT_PUBLIC_ENABLE_ADMIN=true
 
-# Optional: SHA-256 hex of a passphrase for unlocking admin in non-prod.
+# Optional: SHA-256 hex of your passphrase for admin unlock in non-prod.
 NEXT_PUBLIC_ADMIN_PASSHASH=
-```
 
-**Mock mode:**
-If `NEXT_PUBLIC_API_BASE_URL` is empty, the app streams safe mock responses so you can test UI flows without a backend.
+Run Locally
 
-**Admin UI:**
-Keep `NEXT_PUBLIC_ENABLE_ADMIN=false` in production. Admin allows configuring endpoint, model, and params for testing.
+Dev server (hot reload)
 
----
+pnpm dev
+# or: npm run dev
+# open http://localhost:3000
 
-## Scripts
 
-```bash
-pnpm dev           # run Next.js dev server
-pnpm build         # production build
-pnpm start         # run the built app
-pnpm lint          # lint
-pnpm typecheck     # TypeScript check
-```
+Production build
 
-(Use `npm run ...` if you prefer npm.)
+pnpm build
+pnpm start
+# or: npm run build && npm start
 
----
+Scripts
+pnpm dev         # start dev server
+pnpm build       # production build
+pnpm start       # run built app
+pnpm lint        # lint
+pnpm typecheck   # TypeScript checks
 
-## Project Structure
 
-```
+(Use npm run ... if using npm.)
+
+Project Structure (high level)
 app/                  # App Router pages (/ and /app)
-components/           # UI components (ChatCanvas, Sidebar, Composer, etc.)
-hooks/                # React hooks
+components/           # UI (ChatCanvas, Sidebar, Composer, etc.)
+hooks/                # custom React hooks
 lib/
-  client.ts           # API client (chat stream, file upload, transcription, health)
-  presets.ts          # Legal presets (system + prefill)
+  client.ts           # API client (chat stream, upload, transcription, health)
+  presets.ts          # legal presets (system + prefill)
   template.ts         # {{variable}} substitution
   store/              # Zustand stores (chats, composer, settings)
 public/               # static assets
-styles/               # global styles / Tailwind
+styles/               # Tailwind config/styles
 types/                # shared TypeScript types
-```
 
----
+Backend Expectations (for real data)
 
-## Backend Expectations (for real data)
+GET /health → { ok: true }
 
-Your backend should expose endpoints compatible with an OpenAI-style interface:
+POST /v1/chat/completions → SSE or JSON response; accepts messages, model, temperature, max_tokens, optional jurisdiction, attachments
 
-* `GET /health` → `{ ok: true }`
-* `POST /v1/chat/completions`
-  Body includes `model`, `messages`, `temperature`, `max_tokens`, optional `jurisdiction` and `attachments`.
-  Supports **SSE** token streaming.
-* `POST /v1/files` (multipart) → returns `{ id, name, mime, size }`
-* `POST /v1/audio/transcriptions` (multipart `file`) → returns `{ text }`
+POST /v1/files (multipart) → returns { id, name, mime, size }
 
-Enable CORS for your frontend origin(s). Do not embed secrets in the frontend; issue tokens server-side if needed.
+POST /v1/audio/transcriptions (multipart file) → returns { text }
 
----
+Leave NEXT_PUBLIC_API_BASE_URL empty to use safe mock responses in dev.
 
-## Common Tasks
+Common Tasks
 
-* **Change presets**: edit `lib/presets.ts` (both `system` and `prefill`).
-* **Jurisdiction defaults**: see your jurisdiction store or selector component; pass value into chat calls.
-* **Admin gating**: hide or show via `NEXT_PUBLIC_ENABLE_ADMIN`.
+Edit presets: lib/presets.ts (both system and prefill)
 
----
+Jurisdiction defaults: check jurisdiction selector/store and ensure it’s passed into chat calls
 
-## Troubleshooting
+Hide admin in prod: set NEXT_PUBLIC_ENABLE_ADMIN=false in production environments
 
-* **Port already in use**: stop the other process or run `PORT=3001 pnpm dev`.
-* **Streaming not working**: confirm server sends SSE and CORS allows `text/event-stream`.
-* **Uploads blocked**: verify backend accepts multipart, CORS, and size limits.
-* **Windows shell quirks**: use PowerShell-friendly commands for file ops.
+Troubleshooting
 
----
+next not recognized / dev script fails
 
-## License
+Install deps: pnpm install (or npm install)
 
-Add your license file and notices here.
+If still missing: npm install next react react-dom
 
----
+PowerShell blocks npm scripts
 
-**Disclaimer:** This software is an AI assistant and does not provide legal advice or create a solicitor-client relationship.
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+
+Port in use
+
+PORT=3001 pnpm dev (adjust port as needed)
+
+SSE not streaming
+
+Confirm backend sends text/event-stream and CORS allows the frontend origin
+
+Uploads failing
+
+Backend must accept multipart and allow your origin via CORS
+
+Disclaimer
+
+This software is an AI assistant and does not provide legal advice or create a solicitor-client relationship. Use responsibly.
